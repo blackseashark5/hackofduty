@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Player Ratings</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #playerGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            width: 80%;
+        }
+
+        .player-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .player-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .player-photo {
+            width: 100%;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .player-info {
+            padding: 15px;
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .stars {
+            color: gold;
+        }
+
+        .player-rating {
+            margin-bottom: 10px;
+        }
+
+        .rating-bar {
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            height: 10px;
+        }
+
+        .rating-fill {
+            background-color: #76c7c0;
+            height: 100%;
+        }
+
+        /* Modal Styles */
+        #playerModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #modalContent {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            text-align: center;
+        }
+
+        .stat-item {
+            margin: 5px 0;
+        }
+
+        .close-button {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>NBA Player Ratings</h1>
+    <div id="playerGrid"></div>
+
+    <div id="playerModal">
+        <div id="modalContent">
+            <h2 id="modalPlayerName"></h2>
+            <div id="modalPlayerStats"></div>
+            <button class="close-button" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const players = [
+            { name: "LeBron James", rating: 98, photo: "https://upload.wikimedia.org/wikipedia/commons/4/4f/LeBron_James_%2831095168176%29_%28cropped%29.jpg", stats: { points: 30, rebounds: 8, assists: 7, blocks: 1, steals: 1, turnovers: 3, threePointersMade: 3, freeThrowsMade: 5, fantasyPoints: 39 }},
+            { name: "Kevin Durant", rating: 96, photo: "https://upload.wikimedia.org/wikipedia/commons/5/57/Kevin_Durant%2C_March_2019.jpg", stats: { points: 29, rebounds: 7, assists: 5, blocks: 1, steals: 1, turnovers: 2, threePointersMade: 4, freeThrowsMade: 4, fantasyPoints: 37 }},
+            { name: "Stephen Curry", rating: 97, photo: "https://upload.wikimedia.org/wikipedia/commons/b/bf/Stephen_Curry%2C_November_2019.jpg", stats: { points: 28, rebounds: 6, assists: 10, blocks: 0, steals: 1, turnovers: 4, threePointersMade: 6, freeThrowsMade: 2, fantasyPoints: 34 }},
+            { name: "Giannis Antetokounmpo", rating: 94, photo: "https://upload.wikimedia.org/wikipedia/commons/a/a3/Giannis_Antetokounmpo_2019.jpg", stats: { points: 32, rebounds: 11, assists: 5, blocks: 1, steals: 2, turnovers: 3, threePointersMade: 1, freeThrowsMade: 7, fantasyPoints: 40 }},
+            { name: "Luka Dončić", rating: 92, photo: "https://upload.wikimedia.org/wikipedia/commons/c/c4/Luka_Doncic_2022.jpg", stats: { points: 27, rebounds: 9, assists: 8, blocks: 0, steals: 1, turnovers: 4, threePointersMade: 3, freeThrowsMade: 5, fantasyPoints: 36 }},
+            { name: "Nikola Jokić", rating: 93, photo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Nikola_Joki%C4%87_2022.jpg", stats: { points: 26, rebounds: 13, assists: 8, blocks: 0, steals: 1, turnovers: 3, threePointersMade: 2, freeThrowsMade: 4, fantasyPoints: 39 }},
+            { name: "Kawhi Leonard", rating: 91, photo: "https://upload.wikimedia.org/wikipedia/commons/a/a3/Kawhi_Leonard_%28cropped%29.jpg", stats: { points: 24, rebounds: 6, assists: 5, blocks: 1, steals: 1, turnovers: 3, threePointersMade: 2, freeThrowsMade: 6, fantasyPoints: 35 }},
+            { name: "James Harden", rating: 89, photo: "https://upload.wikimedia.org/wikipedia/commons/2/2a/James_Harden_2019.jpg", stats: { points: 25, rebounds: 5, assists: 10, blocks: 0, steals: 1, turnovers: 5, threePointersMade: 3, freeThrowsMade: 8, fantasyPoints: 38 }},
+            { name: "Joel Embiid", rating: 95, photo: "https://upload.wikimedia.org/wikipedia/commons/8/87/Joel_Embiid_2019.jpg", stats: { points: 27, rebounds: 13, assists: 4, blocks: 2, steals: 1, turnovers: 3, threePointersMade: 1, freeThrowsMade: 7, fantasyPoints: 45 }},
+            { name: "Anthony Davis", rating: 90, photo: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Anthony_Davis_2019.jpg", stats: { points: 25, rebounds: 10, assists: 3, blocks: 2, steals: 1, turnovers: 2, threePointersMade: 2, freeThrowsMade: 6, fantasyPoints: 40 }},
+            { name: "Zion Williamson", rating: 88, photo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Zion_Williamson_2019.jpg", stats: { points: 23, rebounds: 6, assists: 2, blocks: 1, steals: 1, turnovers: 2, threePointersMade: 1, freeThrowsMade: 3, fantasyPoints: 36 }},
+            { name: "Russell Westbrook", rating: 86, photo: "https://upload.wikimedia.org/wikipedia/commons/7/73/Russell_Westbrook_2019.jpg", stats: { points: 20, rebounds: 8, assists: 6, blocks: 0, steals: 2, turnovers: 4, threePointersMade: 2, freeThrowsMade: 4, fantasyPoints: 38 }},
+            { name: "Jayson Tatum", rating: 89, photo: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Jayson_Tatum_2019.jpg", stats: { points: 26, rebounds: 7, assists: 5, blocks: 0, steals: 1, turnovers: 3, threePointersMade: 4, freeThrowsMade: 3, fantasyPoints: 44 }}
+        ];
+
+        const playerGrid = document.getElementById('playerGrid');
+
+        players.forEach(player => {
+            const card = document.createElement('div');
+            card.className = 'player-card';
+            card.onclick = () => openModal(player);
+
+            card.innerHTML = `
+                <img src="${player.photo}" alt="${player.name}" class="player-photo">
+                <div class="player-info">
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-rating stars">${'★'.repeat(Math.round(player.rating / 10))}</div>
+                    <div class="player-rating">Rating: ${player.rating}</div>
+                    <div class="rating-bar">
+                        <div class="rating-fill" style="width: ${player.rating * 10}%"></div>
+                    </div>
+                </div>
+            `;
+            playerGrid.appendChild(card);
+        });
+
+        function openModal(player) {
+            document.getElementById('modalPlayerName').textContent = player.name;
+            const modalStats = document.getElementById('modalPlayerStats');
+            modalStats.innerHTML = `
+                <div class="stat-item">Points: ${player.stats.points}</div>
+                <div class="stat-item">Rebounds: ${player.stats.rebounds}</div>
+                <div class="stat-item">Assists: ${player.stats.assists}</div>
+                <div class="stat-item">Blocks: ${player.stats.blocks}</div>
+                <div class="stat-item">Steals: ${player.stats.steals}</div>
+                <div class="stat-item">Turnovers: ${player.stats.turnovers}</div>
+                <div class="stat-item">3-Pointers Made: ${player.stats.threePointersMade}</div>
+                <div class="stat-item">Free Throws Made: ${player.stats.freeThrowsMade}</div>
+                <div class="stat-item">Fantasy Points: ${player.stats.fantasyPoints}</div>
+            `;
+            document.getElementById('playerModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('playerModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
